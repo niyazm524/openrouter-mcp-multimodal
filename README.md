@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/stabgan-openrouter-mcp-multimodal-badge.png)](https://mseep.ai/app/stabgan-openrouter-mcp-multimodal)
+
 # OpenRouter MCP Multimodal Server
 
 [![Build Status](https://github.com/stabgan/openrouter-mcp-multimodal/actions/workflows/publish.yml/badge.svg)](https://github.com/stabgan/openrouter-mcp-multimodal/actions/workflows/publish.yml)
