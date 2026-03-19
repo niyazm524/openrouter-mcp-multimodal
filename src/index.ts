@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { Readable } from 'node:stream';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { ToolHandlers } from './tool-handlers.js';
@@ -15,10 +16,10 @@ if (!apiKey) {
   process.exit(1);
 }
 
-const defaultModel = process.env.OPENROUTER_DEFAULT_MODEL || DEFAULT_MODEL;
+const defaultModel = process.env.OPENROUTER_DEFAULT_MODEL || process.env.DEFAULT_MODEL || DEFAULT_MODEL;
 
 const server = new Server(
-  { name: 'openrouter-multimodal-server', version: '1.6.2' },
+  { name: 'openrouter-multimodal-server', version: '1.7.0' },
   { capabilities: { tools: {} } }
 );
 
@@ -28,7 +29,24 @@ new ToolHandlers(server, apiKey, defaultModel);
 
 process.on('SIGINT', async () => { await server.close(); process.exit(0); });
 
-const transport = new StdioServerTransport();
+// Ensure stdin emits raw Buffers — some hosts (e.g. Claude Desktop) may set
+// encoding on the stdin pipe, which causes the MCP SDK's ReadBuffer to receive
+// strings instead of Buffers. ReadBuffer.readMessage() calls subarray() which
+// doesn't exist on strings, triggering an infinite error loop.
+if ((process.stdin as any).setEncoding) {
+  (process.stdin as any).setEncoding(undefined as any);
+}
+
+const safeStdin = new Readable({
+  read() {}
+});
+process.stdin.on('data', (chunk: Buffer | string) => {
+  safeStdin.push(typeof chunk === 'string' ? Buffer.from(chunk, 'utf8') : chunk);
+});
+process.stdin.on('end', () => safeStdin.push(null));
+process.stdin.on('error', (err) => safeStdin.destroy(err));
+
+const transport = new StdioServerTransport(safeStdin as any, process.stdout);
 server.connect(transport).then(() => {
   console.error(`OpenRouter MCP server running (model: ${defaultModel})`);
 }).catch((err) => {

@@ -1,6 +1,6 @@
 {
   "name": "@stabgan/openrouter-mcp-multimodal",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "description": "MCP server for OpenRouter with text chat, image analysis, and image generation",
   "type": "module",
   "main": "dist/index.js",
@@ -17,7 +17,7 @@
   "license": "MIT",
   "engines": { "node": ">=18.0.0" },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.8.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "openai": "^4.89.1",
     "sharp": "^0.33.5"
   },
