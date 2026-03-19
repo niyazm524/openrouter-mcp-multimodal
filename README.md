@@ -194,7 +194,7 @@ npm start
 npm test
 ```
 
-Default `npm test` runs **unit tests** (model cache, image utilities, etc.). With `OPENROUTER_API_KEY` set in `.env`, `npm run test:integration` runs live OpenRouter tests. CI runs integration only when the `OPENROUTER_API_KEY` repository secret is configured.
+Default `npm test` runs **unit tests** (model cache, image utilities, etc.). With `OPENROUTER_API_KEY` set in `.env`, `npm run test:integration` runs live OpenRouter tests locally (CI does not use your API key).
 
 ```bash
 npm run lint
