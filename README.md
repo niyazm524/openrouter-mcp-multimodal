@@ -194,7 +194,9 @@ npm start
 npm test
 ```
 
-Default `npm test` runs **unit tests** (model cache, image utilities, etc.). With `OPENROUTER_API_KEY` set in `.env`, `npm run test:integration` runs live OpenRouter tests locally (CI does not use your API key).
+`npm test` runs **unit tests** only (fast, no API key). With `OPENROUTER_API_KEY` in `.env`, run **`npm run test:integration`** for live OpenRouter tests (slower; may time out on congested networks).
+
+**npm releases:** This repo’s `publish-npm` job uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) (GitHub Actions OIDC). The package on npmjs.com must list this repository and workflow `publish.yml` under **Settings → Trusted publisher**. No long-lived `NPMJS_TOKEN` is required for publish once that is configured.
 
 ```bash
 npm run lint

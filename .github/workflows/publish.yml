@@ -51,6 +51,11 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    # Trusted publishing (OIDC): package must link this repo + publish.yml on npmjs.com
+    # https://docs.npmjs.com/trusted-publishers/
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,7 +64,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
           cache-dependency-path: package-lock.json
@@ -72,10 +77,12 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Publish to npm
+      - name: npm CLI for OIDC trusted publishing
+        run: npm install -g npm@^11.5.1
+
+      # OpenID Connect (package → Trusted publisher → this workflow). Do not set NODE_AUTH_TOKEN here.
+      - name: Publish to npm (trusted publisher)
         run: npm publish --access=public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
   docker:
     needs: build
