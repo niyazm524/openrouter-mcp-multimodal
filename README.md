@@ -7,9 +7,22 @@
 [![Build Status](https://github.com/stabgan/openrouter-mcp-multimodal/actions/workflows/publish.yml/badge.svg)](https://github.com/stabgan/openrouter-mcp-multimodal/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-An OpenRouter MCP server with native vision, image generation, and smart image optimization in one package.
+An OpenRouter MCP server with native vision, image generation, audio analysis, audio generation, and smart image optimization in one package.
 
-Access 300+ LLMs through [OpenRouter](https://openrouter.ai) via the [Model Context Protocol](https://modelcontextprotocol.io), with first-class support for multimodal workflows: analyze images, generate images, and chat — using free or paid models.
+Access 300+ LLMs through [OpenRouter](https://openrouter.ai) via the [Model Context Protocol](https://modelcontextprotocol.io), with first-class support for multimodal workflows: analyze images, analyze audio, generate images, generate audio (conversational, speech, or music), and chat — using free or paid models.
+
+## One-Click Install
+
+Add this MCP server to your favorite AI tool:
+
+| Tool | Install |
+| ---- | ------- |
+| **Kiro** | [![Add to Kiro](https://img.shields.io/badge/Add_to-Kiro-blue?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAydjIwTTIgMTJoMjAiLz48L3N2Zz4=)](https://kiro.dev/mcp?url=https://github.com/stabgan/openrouter-mcp-multimodal) |
+| **Claude Desktop** | [Install Guide](#option-1-npx-no-install) — Add to `claude_desktop_config.json` |
+| **Cursor** | [Install Guide](#option-1-npx-no-install) — Add to `.cursor/mcp.json` |
+| **Windsurf** | [Install Guide](#option-1-npx-no-install) — Add to `~/.codeium/windsurf/mcp_config.json` |
+| **Cline** | [Install Guide](#option-1-npx-no-install) — Add via Cline MCP settings |
+| **Smithery** | `npx -y @smithery/cli install @stabgan/openrouter-mcp-multimodal --client claude` |
 
 ## Why This One?
 
@@ -17,6 +30,8 @@ Access 300+ LLMs through [OpenRouter](https://openrouter.ai) via the [Model Cont
 | ---------------------------- | ----------------------------------------------------------------- |
 | Text chat with 300+ models   | ✅                                                                |
 | Image analysis (vision)      | ✅ Native with sharp optimization                                 |
+| Audio analysis               | ✅ Transcription and analysis with base64 encoding                |
+| Audio generation             | ✅ Conversational audio, speech, and music generation with format auto-detection |
 | Image generation             | ✅                                                                |
 | Auto image resize & compress | ✅ (configurable; defaults 800px max, JPEG 80%)                   |
 | Model search & validation    | ✅                                                                |
@@ -26,14 +41,16 @@ Access 300+ LLMs through [OpenRouter](https://openrouter.ai) via the [Model Cont
 
 ## Tools
 
-| Tool              | Description                                                                     |
-| ----------------- | ------------------------------------------------------------------------------- |
-| `chat_completion` | Send messages to any OpenRouter model. Supports text and multimodal content.    |
-| `analyze_image`   | Analyze images from local files, URLs, or data URIs. Auto-optimized with sharp. |
-| `generate_image`  | Generate images from text prompts. Optionally save to disk.                     |
-| `search_models`   | Search/filter models by name, provider, or capabilities (e.g. vision-only).     |
-| `get_model_info`  | Get pricing, context length, and capabilities for any model.                    |
-| `validate_model`  | Check if a model ID exists on OpenRouter.                                       |
+| Tool              | Description                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------------- |
+| `chat_completion` | Send messages to any OpenRouter model. Supports text and multimodal content.                        |
+| `analyze_image`   | Analyze images from local files, URLs, or data URIs. Auto-optimized with sharp.                     |
+| `analyze_audio`   | Analyze/transcribe audio from local files, URLs, or data URIs. Supports WAV, MP3, FLAC, OGG, etc.  |
+| `generate_audio`  | Generate audio from text using conversational or music generation models. Auto-detects output format. |
+| `generate_image`  | Generate images from text prompts. Optionally save to disk.                                         |
+| `search_models`   | Search/filter models by name, provider, or capabilities (e.g. vision, audio).                       |
+| `get_model_info`  | Get pricing, context length, and capabilities for any model.                                        |
+| `validate_model`  | Check if a model ID exists on OpenRouter.                                                           |
 
 ## Quick Start
 
@@ -65,11 +82,8 @@ Get a free API key from [openrouter.ai/keys](https://openrouter.ai/keys).
     "openrouter": {
       "command": "docker",
       "args": [
-        "run",
-        "--rm",
-        "-i",
-        "-e",
-        "OPENROUTER_API_KEY=sk-or-v1-...",
+        "run", "--rm", "-i",
+        "-e", "OPENROUTER_API_KEY=sk-or-v1-...",
         "stabgan/openrouter-mcp-multimodal:latest"
       ]
     }
@@ -118,10 +132,16 @@ npx -y @smithery/cli install @stabgan/openrouter-mcp-multimodal --client claude
 | `OPENROUTER_IMAGE_MAX_DOWNLOAD_BYTES` | No       | `26214400`                            | Max bytes when downloading an image URL (~25 MB)      |
 | `OPENROUTER_IMAGE_MAX_REDIRECTS`      | No       | `8`                                   | Max HTTP redirects when fetching an image URL         |
 | `OPENROUTER_IMAGE_MAX_DATA_URL_BYTES` | No       | `20971520`                            | Approx max decoded size for base64 data URLs (~20 MB) |
+| `OPENROUTER_AUDIO_FETCH_TIMEOUT_MS`   | No       | `30000`                               | Per-request timeout for audio URLs                    |
+| `OPENROUTER_AUDIO_MAX_DOWNLOAD_BYTES` | No       | `26214400`                            | Max bytes when downloading an audio URL (~25 MB)      |
+| `OPENROUTER_AUDIO_MAX_REDIRECTS`      | No       | `8`                                   | Max HTTP redirects when fetching an audio URL         |
+| `OPENROUTER_AUDIO_MAX_DATA_URL_BYTES` | No       | `20971520`                            | Approx max decoded size for base64 audio data URLs    |
 
 ### Security notes
 
 - **`analyze_image`** can read **local files** the Node process can read and can **fetch HTTP(S) URLs**. URL fetches block private/link-local/reserved IPv4 and IPv6 targets (SSRF mitigation) and cap response size; they are still **server-side** requests—avoid pointing at internal-only hosts you rely on staying private.
+- **`analyze_audio`** can read **local audio files** and **fetch HTTP(S) URLs**. Same SSRF protections apply. Audio is base64-encoded before sending to OpenRouter (handled automatically).
+- **`generate_audio`** can **save audio files** to disk wherever the process has permission. Uses streaming to receive audio chunks. Output format (MP3, WAV, PCM) depends on the model — conversational models return raw PCM16 (auto-wrapped as WAV), music models return MP3. File extension is auto-corrected.
 - **`generate_image`** `save_path` writes to disk wherever the process has permission; treat prompts and paths like shell input from the MCP client user.
 
 ## Usage Examples
@@ -137,6 +157,28 @@ Use chat_completion to explain quantum computing in simple terms.
 ```
 Use analyze_image on /path/to/photo.jpg and tell me what you see.
 ```
+
+### Analyze Audio
+
+```
+Use analyze_audio on /path/to/recording.mp3 with model "google/gemini-2.5-flash" to transcribe it.
+```
+
+### Generate Conversational Audio
+
+```
+Use generate_audio with prompt "Explain what a neural network is" and voice "alloy", save to ./response.wav
+```
+
+### Generate Music (Lyria)
+
+```
+Use generate_audio with model "google/lyria-3-clip-preview" and prompt:
+"upbeat jazz piano trio with walking bass and brushed snare"
+Save to ./jazz.wav
+```
+
+The file will be auto-saved as `jazz.mp3` since Lyria returns MP3.
 
 ### Find Vision Models
 
@@ -159,10 +201,14 @@ src/
 ├── model-cache.ts        # In-memory model cache (1hr TTL)
 ├── openrouter-api.ts     # OpenRouter REST client (native fetch)
 └── tool-handlers/
+    ├── fetch-utils.ts       # Shared SSRF protection, bounded fetch (used by image + audio)
     ├── chat-completion.ts   # Text & multimodal chat
     ├── analyze-image.ts     # Vision analysis pipeline
+    ├── analyze-audio.ts     # Audio transcription and analysis
     ├── generate-image.ts    # Image generation
-    ├── image-utils.ts       # Sharp optimization, format detection, fetch
+    ├── generate-audio.ts    # Audio generation with streaming + format detection
+    ├── image-utils.ts       # Sharp optimization, format detection
+    ├── audio-utils.ts       # Audio format detection, base64 encoding
     ├── search-models.ts     # Model search with filtering
     ├── get-model-info.ts    # Model detail lookup
     └── validate-model.ts    # Model existence check
@@ -170,10 +216,12 @@ src/
 
 Key design decisions:
 
-- **Native `fetch`** for OpenRouter and image URLs (no axios / node-fetch dependency in this package)
+- **Native `fetch`** for OpenRouter and media URLs (no axios / node-fetch dependency)
+- **Shared security layer** — SSRF protection, IP blocking, bounded fetches in `fetch-utils.ts` (single source of truth for image + audio)
 - **Lazy sharp loading** — `sharp` is loaded on first image operation, not at startup
 - **Singleton model cache** — shared across tool handlers with configurable TTL (default 1 hour)
-- **Bounded URL fetches** — timeouts, size limits, redirect cap, and blocked private networks for image URLs
+- **Bounded URL fetches** — timeouts, size limits, redirect cap, and blocked private networks
+- **Audio format auto-detection** — magic-byte detection for MP3/WAV/FLAC/OGG, raw PCM auto-wrapped in WAV
 - **Graceful error handling** — tools return structured errors instead of crashing the server
 - **Process safety** — uncaught exceptions and unhandled rejections exit the process (no zombie servers)
 
@@ -191,14 +239,8 @@ npm start
 ### Run Tests
 
 ```bash
-npm test
-```
-
-`npm test` runs **unit tests** only (fast, no API key). With `OPENROUTER_API_KEY` in `.env`, run **`npm run test:integration`** for live OpenRouter tests (slower; may time out on congested networks).
-
-**npm releases:** This repo’s `publish-npm` job uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) (GitHub Actions OIDC). The package on npmjs.com must list this repository and workflow `publish.yml` under **Settings → Trusted publisher**. No long-lived `NPMJS_TOKEN` is required for publish once that is configured.
-
-```bash
+npm test                  # Unit tests only (fast, no API key needed)
+npm run test:integration  # Live API tests (needs OPENROUTER_API_KEY in .env)
 npm run lint
 npm run format:check
 ```
@@ -216,9 +258,9 @@ Multi-stage build: 345MB final image (Alpine + vips runtime only).
 
 Works with any MCP client:
 
+- [Kiro](https://kiro.dev)
 - [Claude Desktop](https://claude.ai/download)
 - [Cursor](https://cursor.sh)
-- [Kiro](https://kiro.dev)
 - [Windsurf](https://codeium.com/windsurf)
 - [Cline](https://github.com/cline/cline)
 - Any MCP-compatible client
