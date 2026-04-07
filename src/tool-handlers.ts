@@ -14,10 +14,14 @@ import { handleSearchModels } from './tool-handlers/search-models.js';
 import { handleGetModelInfo } from './tool-handlers/get-model-info.js';
 import { handleValidateModel } from './tool-handlers/validate-model.js';
 import { handleGenerateImage } from './tool-handlers/generate-image.js';
+import { handleAnalyzeAudio } from './tool-handlers/analyze-audio.js';
+import { handleGenerateAudio } from './tool-handlers/generate-audio.js';
 import type { ChatCompletionToolRequest } from './tool-handlers/chat-completion.js';
 import type { AnalyzeImageToolRequest } from './tool-handlers/analyze-image.js';
 import type { SearchModelsArgs } from './tool-handlers/search-models.js';
 import type { GenerateImageToolRequest } from './tool-handlers/generate-image.js';
+import type { AnalyzeAudioToolRequest } from './tool-handlers/analyze-audio.js';
+import type { GenerateAudioToolRequest } from './tool-handlers/generate-audio.js';
 
 function wrapToolArgs<T extends object>(a: T | undefined): { params: { arguments: T } } {
   return { params: { arguments: a ?? ({} as T) } };
@@ -127,6 +131,37 @@ export class ToolHandlers {
             required: ['prompt'],
           },
         },
+        {
+          name: 'analyze_audio',
+          description: 'Analyze or transcribe an audio file using a multimodal model',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              audio_path: { type: 'string', description: 'File path, URL, or data URL (base64-encoded audio)' },
+              question: { type: 'string', description: 'Question or instruction about the audio (default: transcribe)' },
+              model: { type: 'string' },
+            },
+            required: ['audio_path'],
+          },
+        },
+        {
+          name: 'generate_audio',
+          description:
+            'Generate audio from a text prompt. Conversational models (e.g. openai/gpt-audio) respond in spoken audio. ' +
+            'Music models (e.g. google/lyria-3-clip-preview) need a structured prompt. ' +
+            'Output format is auto-detected and file extension is corrected automatically.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              prompt: { type: 'string', description: 'Text input' },
+              model: { type: 'string', description: 'Model ID (default: openai/gpt-audio)' },
+              voice: { type: 'string', description: 'Voice name (default: alloy)' },
+              format: { type: 'string', description: 'Requested format: pcm16 (default), mp3, flac, opus' },
+              save_path: { type: 'string', description: 'Path to save audio file. Extension auto-corrected.' },
+            },
+            required: ['prompt'],
+          },
+        },
       ],
     }));
 
@@ -166,6 +201,17 @@ export class ToolHandlers {
         case 'generate_image':
           return handleGenerateImage(
             wrapToolArgs(args as GenerateImageToolRequest | undefined),
+            this.openai,
+          );
+        case 'analyze_audio':
+          return handleAnalyzeAudio(
+            wrapToolArgs(args as AnalyzeAudioToolRequest | undefined),
+            this.openai,
+            this.defaultModel,
+          );
+        case 'generate_audio':
+          return handleGenerateAudio(
+            wrapToolArgs(args as GenerateAudioToolRequest | undefined),
             this.openai,
           );
         default:

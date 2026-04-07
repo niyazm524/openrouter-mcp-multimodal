@@ -1,8 +1,8 @@
 {
   "name": "@stabgan/openrouter-mcp-multimodal",
-  "version": "1.8.2",
+  "version": "1.9.0",
   "mcpName": "io.github.stabgan/openrouter-multimodal",
-  "description": "MCP server for OpenRouter with text chat, image analysis, and image generation",
+  "description": "MCP server for OpenRouter with text chat, image analysis, image generation, audio analysis, and audio generation",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -28,7 +28,10 @@
     "ai",
     "llm",
     "vision",
-    "image-analysis"
+    "image-analysis",
+    "audio",
+    "transcription",
+    "text-to-speech"
   ],
   "author": "stabgan",
   "repository": {
