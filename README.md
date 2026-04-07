@@ -17,9 +17,10 @@ Add this MCP server to your favorite AI tool:
 
 | Tool | Install |
 | ---- | ------- |
-| **Kiro** | [![Add to Kiro](https://img.shields.io/badge/Add_to-Kiro-blue?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAydjIwTTIgMTJoMjAiLz48L3N2Zz4=)](https://kiro.dev/mcp?url=https://github.com/stabgan/openrouter-mcp-multimodal) |
+| **Kiro** | [![Add to Kiro](https://img.shields.io/badge/Add_to-Kiro-232F3E?logo=amazonaws&logoColor=white)](https://kiro.dev/mcp?url=https://github.com/stabgan/openrouter-mcp-multimodal) |
+| **Cursor** | [![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000?logo=cursor&logoColor=white)](cursor://anysphere.cursor-deeplink/mcp/install?name=openrouter&config=eyJtY3BTZXJ2ZXJzIjogeyJvcGVucm91dGVyIjogeyJjb21tYW5kIjogIm5weCIsICJhcmdzIjogWyIteSIsICJAc3RhYmdhbi9vcGVucm91dGVyLW1jcC1tdWx0aW1vZGFsIl0sICJlbnYiOiB7Ik9QRU5ST1VURVJfQVBJX0tFWSI6ICJzay1vci12MS0uLi4ifX19fQ==) |
+| **VS Code** | [![Add to VS Code](https://img.shields.io/badge/Add_to-VS_Code-007ACC?logo=visualstudiocode&logoColor=white)](vscode://ms-vscode.vscode-mcp/install?config=eyJtY3BTZXJ2ZXJzIjogeyJvcGVucm91dGVyIjogeyJjb21tYW5kIjogIm5weCIsICJhcmdzIjogWyIteSIsICJAc3RhYmdhbi9vcGVucm91dGVyLW1jcC1tdWx0aW1vZGFsIl0sICJlbnYiOiB7Ik9QRU5ST1VURVJfQVBJX0tFWSI6ICJzay1vci12MS0uLi4ifX19fQ==) |
 | **Claude Desktop** | [Install Guide](#option-1-npx-no-install) — Add to `claude_desktop_config.json` |
-| **Cursor** | [Install Guide](#option-1-npx-no-install) — Add to `.cursor/mcp.json` |
 | **Windsurf** | [Install Guide](#option-1-npx-no-install) — Add to `~/.codeium/windsurf/mcp_config.json` |
 | **Cline** | [Install Guide](#option-1-npx-no-install) — Add via Cline MCP settings |
 | **Smithery** | `npx -y @smithery/cli install @stabgan/openrouter-mcp-multimodal --client claude` |
