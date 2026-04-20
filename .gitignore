@@ -4,3 +4,9 @@ dist/
 *.log
 *.tsbuildinfo
 .DS_Store
+
+# Workspace-local Kiro artifacts (specs, agents, steering) — do not publish.
+.kiro/
+
+# Local smoke/integration artifacts
+.mcp-smoke-output/

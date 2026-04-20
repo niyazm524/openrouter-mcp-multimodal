@@ -14,9 +14,7 @@ export async function handleSearchModels(
   modelCache: ModelCache,
 ) {
   try {
-    if (!modelCache.isValid()) {
-      modelCache.setModels(await apiClient.getModels());
-    }
+    await modelCache.ensureFresh(() => apiClient.getModels());
     const results = modelCache.search(request.params.arguments);
     return { content: [{ type: 'text', text: JSON.stringify(results, null, 2) }] };
   } catch (error: unknown) {

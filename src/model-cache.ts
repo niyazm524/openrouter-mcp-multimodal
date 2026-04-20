@@ -1,7 +1,7 @@
 export interface OpenRouterModelRecord {
   id: string;
   name?: string;
-  architecture?: { input_modalities?: string[] };
+  architecture?: { input_modalities?: string[]; output_modalities?: string[] };
   context_length?: number;
   [key: string]: unknown;
 }
@@ -13,10 +13,13 @@ function getCacheTtlMs(): number {
   return Number.isFinite(n) && n > 0 ? n : 3600000;
 }
 
+const MAX_SEARCH_LIMIT = 50;
+
 export class ModelCache {
   private static instance: ModelCache;
   private models: Record<string, OpenRouterModelRecord> = {};
   private fetchedAt = 0;
+  private inflight: Promise<OpenRouterModelRecord[]> | null = null;
 
   static getInstance(): ModelCache {
     return (ModelCache.instance ??= new ModelCache());
@@ -29,6 +32,26 @@ export class ModelCache {
   setModels(models: OpenRouterModelRecord[]): void {
     this.models = Object.fromEntries(models.map((m) => [m.id, m]));
     this.fetchedAt = Date.now();
+  }
+
+  /**
+   * Populate the cache using `fetcher` if stale, coalescing concurrent callers
+   * so only one request hits the upstream API per stale window. Callers that
+   * arrive while a populate is in flight await the same promise.
+   */
+  async ensureFresh(fetcher: () => Promise<OpenRouterModelRecord[]>): Promise<void> {
+    if (this.isValid()) return;
+    if (this.inflight) {
+      await this.inflight;
+      return;
+    }
+    this.inflight = (async () => fetcher())();
+    try {
+      const models = await this.inflight;
+      this.setModels(models);
+    } finally {
+      this.inflight = null;
+    }
   }
 
   getAll(): OpenRouterModelRecord[] {
@@ -46,7 +69,7 @@ export class ModelCache {
   search(params: {
     query?: string;
     provider?: string;
-    capabilities?: { vision?: boolean };
+    capabilities?: { vision?: boolean; audio?: boolean; video?: boolean };
     limit?: number;
   }): OpenRouterModelRecord[] {
     let results = this.getAll();
@@ -64,7 +87,14 @@ export class ModelCache {
     if (params.capabilities?.vision) {
       results = results.filter((m) => m.architecture?.input_modalities?.includes('image'));
     }
+    if (params.capabilities?.audio) {
+      results = results.filter((m) => m.architecture?.input_modalities?.includes('audio'));
+    }
+    if (params.capabilities?.video) {
+      results = results.filter((m) => m.architecture?.input_modalities?.includes('video'));
+    }
 
-    return results.slice(0, params.limit ?? 10);
+    const limit = Math.min(Math.max(1, params.limit ?? 10), MAX_SEARCH_LIMIT);
+    return results.slice(0, limit);
   }
 }

@@ -8,8 +8,13 @@ export async function handleGetModelInfo(
 ) {
   const { model } = request.params.arguments;
 
-  if (!modelCache.isValid() && apiClient) {
-    modelCache.setModels(await apiClient.getModels());
+  if (apiClient) {
+    try {
+      await modelCache.ensureFresh(() => apiClient.getModels());
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      return { content: [{ type: 'text', text: `Error: ${msg}` }], isError: true };
+    }
   }
 
   if (!modelCache.isValid()) {

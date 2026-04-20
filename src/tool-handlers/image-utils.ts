@@ -5,6 +5,7 @@ import {
   isBlockedIPv4 as _isBlockedIPv4,
   assertUrlSafeForFetch as _assertUrlSafeForFetch,
   fetchHttpResource,
+  parseBase64DataUrl,
 } from './fetch-utils.js';
 
 // Re-export for backward compatibility (tests import from image-utils)
@@ -83,12 +84,11 @@ export async function fetchHttpImage(urlString: string): Promise<Buffer> {
 
 export async function fetchImage(source: string): Promise<Buffer> {
   if (source.startsWith('data:')) {
-    const match = source.match(/^data:[^;]+;base64,(.+)$/);
-    if (!match) throw new Error('Invalid data URL');
-    const b64 = match[1];
-    const approxBytes = Math.ceil((b64.length * 3) / 4);
+    const parsed = parseBase64DataUrl(source);
+    if (!parsed) throw new Error('Invalid data URL');
+    const approxBytes = Math.ceil((parsed.base64.length * 3) / 4);
     if (approxBytes > getMaxDataUrlBytes()) throw new Error('Data URL too large');
-    return Buffer.from(b64, 'base64');
+    return Buffer.from(parsed.base64, 'base64');
   }
 
   if (source.startsWith('http://') || source.startsWith('https://')) {
@@ -98,9 +98,59 @@ export async function fetchImage(source: string): Promise<Buffer> {
   return fs.readFile(source);
 }
 
-export async function optimizeImage(buffer: Buffer): Promise<string> {
+/**
+ * Sniff image MIME type from magic bytes. Used to label the output of a
+ * failed `sharp` optimization (where we return original bytes but don't
+ * know the source MIME yet) and HTTP image responses whose Content-Type
+ * header is missing or wrong.
+ */
+export function sniffImageMime(buffer: Buffer): string | null {
+  if (buffer.length < 4) return null;
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
+    return 'image/png';
+  }
+  // JPEG: FF D8 FF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return 'image/jpeg';
+  }
+  // GIF: 47 49 46 38
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38) {
+    return 'image/gif';
+  }
+  // WebP: RIFF....WEBP
+  if (
+    buffer.length >= 12 &&
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50
+  ) {
+    return 'image/webp';
+  }
+  // BMP
+  if (buffer[0] === 0x42 && buffer[1] === 0x4d) return 'image/bmp';
+  return null;
+}
+
+/**
+ * Optimize an image buffer and return both the base64 payload AND the MIME
+ * type that matches that payload. Callers should NOT assume JPEG — the
+ * pipeline falls back to the original bytes (with its detected MIME) when
+ * sharp is unavailable or fails. This closes BUG-012.
+ */
+export async function optimizeImage(buffer: Buffer): Promise<{ base64: string; mime: string }> {
   const sharp = await loadSharp();
-  if (!sharp) return buffer.toString('base64');
+  if (!sharp) {
+    return {
+      base64: buffer.toString('base64'),
+      mime: sniffImageMime(buffer) ?? 'application/octet-stream',
+    };
+  }
 
   const maxDim = getMaxImageDimension();
   const quality = getImageJpegQuality();
@@ -115,9 +165,12 @@ export async function optimizeImage(buffer: Buffer): Promise<string> {
     }
 
     const out = await pipeline.jpeg({ quality }).toBuffer();
-    return out.toString('base64');
+    return { base64: out.toString('base64'), mime: 'image/jpeg' };
   } catch {
-    return buffer.toString('base64');
+    return {
+      base64: buffer.toString('base64'),
+      mime: sniffImageMime(buffer) ?? 'application/octet-stream',
+    };
   }
 }
 
@@ -125,7 +178,11 @@ export async function prepareImageUrl(source: string): Promise<string> {
   if (source.startsWith('data:')) return source;
 
   const buffer = await fetchImage(source);
-  const base64 = await optimizeImage(buffer);
-  const mime = source.startsWith('http') ? 'image/jpeg' : getMimeType(source);
-  return `data:${mime};base64,${base64}`;
+  const { base64, mime } = await optimizeImage(buffer);
+  // When optimization succeeded, mime is 'image/jpeg'. When it failed, we
+  // use the sniffed mime. For local files we prefer the extension-derived
+  // mime (more specific) when optimization fell back.
+  const finalMime =
+    mime === 'image/jpeg' || source.startsWith('http') ? mime : getMimeType(source);
+  return `data:${finalMime};base64,${base64}`;
 }

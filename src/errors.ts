@@ -1,0 +1,60 @@
+/**
+ * Closed error-code taxonomy for MCP tool responses. Every handler uses
+ * `toolError(code, message, details?)` instead of ad-hoc text so clients
+ * can switch on `_meta.code` without regex-parsing free text.
+ *
+ * Adding a new code requires a design.md note — this set is intentionally
+ * small and stable.
+ */
+export const ErrorCode = {
+  INVALID_INPUT: 'INVALID_INPUT',
+  UNSAFE_PATH: 'UNSAFE_PATH',
+  UPSTREAM_HTTP: 'UPSTREAM_HTTP',
+  UPSTREAM_TIMEOUT: 'UPSTREAM_TIMEOUT',
+  UPSTREAM_REFUSED: 'UPSTREAM_REFUSED',
+  UNSUPPORTED_FORMAT: 'UNSUPPORTED_FORMAT',
+  RESOURCE_TOO_LARGE: 'RESOURCE_TOO_LARGE',
+  ZDR_INCOMPATIBLE: 'ZDR_INCOMPATIBLE',
+  MODEL_NOT_FOUND: 'MODEL_NOT_FOUND',
+  JOB_FAILED: 'JOB_FAILED',
+  JOB_STILL_RUNNING: 'JOB_STILL_RUNNING',
+  INTERNAL: 'INTERNAL',
+} as const;
+
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
+
+export interface ToolErrorResult {
+  content: Array<{ type: 'text'; text: string }>;
+  isError: true;
+  _meta: {
+    code: ErrorCode;
+    details?: Record<string, unknown>;
+  };
+}
+
+/** Build a structured MCP error result. */
+export function toolError(
+  code: ErrorCode,
+  message: string,
+  details?: Record<string, unknown>,
+): ToolErrorResult {
+  const result: ToolErrorResult = {
+    content: [{ type: 'text', text: message }],
+    isError: true,
+    _meta: { code },
+  };
+  if (details !== undefined) result._meta.details = details;
+  return result;
+}
+
+/**
+ * Convert a caught `unknown` error into a structured tool result. Preserves
+ * user-visible messages for known `Error` types and refuses to leak stack
+ * traces or raw objects.
+ */
+export function toolErrorFrom(code: ErrorCode, err: unknown, prefix?: string): ToolErrorResult {
+  const base = prefix ? `${prefix}: ` : '';
+  if (err instanceof Error) return toolError(code, base + err.message);
+  if (typeof err === 'string') return toolError(code, base + err);
+  return toolError(code, base + 'unknown error');
+}

@@ -1,6 +1,16 @@
 import OpenAI from 'openai';
-import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions.js';
+import type {
+  ChatCompletion,
+  ChatCompletionMessageParam,
+} from 'openai/resources/chat/completions.js';
 import { prepareImageUrl } from './image-utils.js';
+import { ErrorCode, toolError, toolErrorFrom } from '../errors.js';
+import { classifyUpstreamError } from './openrouter-errors.js';
+import {
+  extractCompletionText,
+  detectReasoningCutoff,
+  toUsageMeta,
+} from './completion-utils.js';
 
 const DEFAULT_MODEL = 'nvidia/nemotron-nano-12b-v2-vl:free';
 
@@ -15,16 +25,27 @@ export async function handleAnalyzeImage(
   openai: OpenAI,
   defaultModel?: string,
 ) {
-  const { image_path, question, model } = request.params.arguments;
+  const { image_path, question, model } = request.params.arguments ?? { image_path: '' };
 
   if (!image_path) {
-    return { content: [{ type: 'text', text: 'image_path is required.' }], isError: true };
+    return toolError(ErrorCode.INVALID_INPUT, 'image_path is required.');
   }
 
+  let imageUrl: string;
   try {
-    const imageUrl = await prepareImageUrl(image_path);
+    imageUrl = await prepareImageUrl(image_path);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes('Blocked host')) return toolErrorFrom(ErrorCode.UPSTREAM_REFUSED, err);
+    if (msg.toLowerCase().includes('too large')) {
+      return toolErrorFrom(ErrorCode.RESOURCE_TOO_LARGE, err);
+    }
+    return toolErrorFrom(ErrorCode.INVALID_INPUT, err);
+  }
 
-    const completion = await openai.chat.completions.create({
+  let completion: ChatCompletion;
+  try {
+    completion = await openai.chat.completions.create({
       model: model || defaultModel || DEFAULT_MODEL,
       messages: [
         {
@@ -36,10 +57,24 @@ export async function handleAnalyzeImage(
         },
       ] as ChatCompletionMessageParam[],
     });
-
-    return { content: [{ type: 'text', text: completion.choices[0].message.content || '' }] };
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    return { content: [{ type: 'text', text: `Error: ${msg}` }], isError: true };
+  } catch (err) {
+    return classifyUpstreamError(err);
   }
+
+  const extracted = extractCompletionText(completion);
+  const cutoff = detectReasoningCutoff(extracted);
+  if (cutoff) return cutoff;
+
+  if (!extracted.text) {
+    return toolError(ErrorCode.INTERNAL, 'Vision model returned no textual content.', {
+      finish_reason: extracted.finishReason,
+    });
+  }
+  return {
+    content: [{ type: 'text' as const, text: extracted.text }],
+    _meta: {
+      finish_reason: extracted.finishReason,
+      ...(toUsageMeta(extracted.usage) ?? {}),
+    },
+  };
 }

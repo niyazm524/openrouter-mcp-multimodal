@@ -1,6 +1,16 @@
 import OpenAI from 'openai';
-import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions.js';
+import type {
+  ChatCompletion,
+  ChatCompletionMessageParam,
+} from 'openai/resources/chat/completions.js';
 import { prepareAudioData } from './audio-utils.js';
+import { ErrorCode, toolError, toolErrorFrom } from '../errors.js';
+import { classifyUpstreamError } from './openrouter-errors.js';
+import {
+  extractCompletionText,
+  detectReasoningCutoff,
+  toUsageMeta,
+} from './completion-utils.js';
 
 const DEFAULT_MODEL = 'google/gemini-2.5-flash';
 
@@ -15,16 +25,30 @@ export async function handleAnalyzeAudio(
   openai: OpenAI,
   defaultModel?: string,
 ) {
-  const { audio_path, question, model } = request.params.arguments;
+  const { audio_path, question, model } = request.params.arguments ?? { audio_path: '' };
 
   if (!audio_path) {
-    return { content: [{ type: 'text', text: 'audio_path is required.' }], isError: true };
+    return toolError(ErrorCode.INVALID_INPUT, 'audio_path is required.');
   }
 
+  let audioData;
   try {
-    const audioData = await prepareAudioData(audio_path);
+    audioData = await prepareAudioData(audio_path);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes('Blocked host')) return toolErrorFrom(ErrorCode.UPSTREAM_REFUSED, err);
+    if (msg.toLowerCase().includes('too large')) {
+      return toolErrorFrom(ErrorCode.RESOURCE_TOO_LARGE, err);
+    }
+    if (msg.toLowerCase().includes('unsupported')) {
+      return toolErrorFrom(ErrorCode.UNSUPPORTED_FORMAT, err);
+    }
+    return toolErrorFrom(ErrorCode.INVALID_INPUT, err);
+  }
 
-    const completion = await openai.chat.completions.create({
+  let completion: ChatCompletion;
+  try {
+    completion = await openai.chat.completions.create({
       model: model || defaultModel || DEFAULT_MODEL,
       messages: [
         {
@@ -42,10 +66,24 @@ export async function handleAnalyzeAudio(
         },
       ] as ChatCompletionMessageParam[],
     });
-
-    return { content: [{ type: 'text', text: completion.choices[0].message.content || '' }] };
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    return { content: [{ type: 'text', text: `Error: ${msg}` }], isError: true };
+  } catch (err) {
+    return classifyUpstreamError(err);
   }
+
+  const extracted = extractCompletionText(completion);
+  const cutoff = detectReasoningCutoff(extracted);
+  if (cutoff) return cutoff;
+
+  if (!extracted.text) {
+    return toolError(ErrorCode.INTERNAL, 'Audio model returned no textual content.', {
+      finish_reason: extracted.finishReason,
+    });
+  }
+  return {
+    content: [{ type: 'text' as const, text: extracted.text }],
+    _meta: {
+      finish_reason: extracted.finishReason,
+      ...(toUsageMeta(extracted.usage) ?? {}),
+    },
+  };
 }

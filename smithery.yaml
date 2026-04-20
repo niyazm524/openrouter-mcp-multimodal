@@ -1,6 +1,6 @@
 name: openrouter-mcp-multimodal
-version: 1.8.0
-description: MCP server for OpenRouter providing text chat and image analysis tools
+version: 3.0.0
+description: MCP server for OpenRouter — text chat, image analysis + generation, audio analysis + generation, and video analysis + generation (Veo 3.1 / Sora 2 Pro / Seedance / Wan)
 
 image:
   name: ghcr.io/stabgan/openrouter-mcp-multimodal
@@ -64,14 +64,21 @@ config:
 
 documentation:
   description: |
-    An MCP server that provides chat and image analysis capabilities through OpenRouter.ai's diverse model ecosystem.
-    Supports text chat, single and multi-image analysis, and model search/validation.
+    An MCP server that exposes 300+ models from OpenRouter.ai through a unified multimodal tool
+    interface — chat, image analysis + generation, audio analysis + generation, and video analysis
+    + generation (Veo 3.1, Sora 2 Pro, Seedance, Wan). Structured error taxonomy, MCP 2025 tool
+    annotations, path-sandboxed disk output, IPv4/IPv6 SSRF protection.
   usage: |
     This MCP server provides the following tools:
-    - chat_completion: Send text or multimodal messages to OpenRouter
+    - chat_completion: Send text or multimodal messages to OpenRouter (reasoning-cutoff aware)
     - analyze_image: Analyze images from files, URLs, or data URLs
-    - generate_image: Generate images from text prompts
-    - search_models: Search and filter available models
-    - get_model_info: Get detailed information about a specific model
+    - analyze_audio: Transcribe or analyze WAV/MP3/FLAC/OGG audio
+    - analyze_video: Understand video (mp4/mpeg/mov/webm) from files, URLs, or data URLs
+    - generate_image: Generate images with disk-sandboxed save_path
+    - generate_audio: Generate conversational audio or music with format auto-detection
+    - generate_video: Submit async video jobs (Veo 3.1 / Sora 2 Pro / Seedance / Wan), poll, download
+    - get_video_status: Resume polling a generate_video job by id
+    - search_models: Search and filter available models by capability (vision/audio/video)
+    - get_model_info: Get pricing, context length, and capabilities for any model
     - validate_model: Check if a model ID is valid
   link: https://github.com/stabgan/openrouter-mcp-multimodal

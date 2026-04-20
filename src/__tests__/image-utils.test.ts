@@ -68,12 +68,13 @@ describe('isBlockedIPv4', () => {
 });
 
 describe('optimizeImage', () => {
-  it('should return base64 string for any buffer', async () => {
-    // Even without sharp, fallback should return base64
+  it('returns base64 + mime for any buffer', async () => {
+    // Even without sharp, fallback should return base64 + a best-effort mime
     const buf = Buffer.from('fake-image-data');
     const result = await optimizeImage(buf);
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
+    expect(typeof result.base64).toBe('string');
+    expect(result.base64.length).toBeGreaterThan(0);
+    expect(typeof result.mime).toBe('string');
   });
 });
 

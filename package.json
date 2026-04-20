@@ -1,8 +1,8 @@
 {
   "name": "@stabgan/openrouter-mcp-multimodal",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "mcpName": "io.github.stabgan/openrouter-multimodal",
-  "description": "MCP server for OpenRouter with text chat, image analysis, image generation, audio analysis, and audio generation",
+  "description": "MCP server for OpenRouter with text chat, image analysis + generation, audio analysis + generation, video analysis, and video generation (Veo 3.1 / Sora 2 Pro / Seedance / Wan)",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "start": "node dist/index.js",
     "lint": "eslint src",
     "format": "prettier --write \"src/**/*.ts\" *.json \"*.md\"",

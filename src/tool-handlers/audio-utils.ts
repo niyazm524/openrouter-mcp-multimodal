@@ -4,7 +4,7 @@
  */
 import path from 'path';
 import { promises as fs } from 'fs';
-import { readEnvInt, fetchHttpResource } from './fetch-utils.js';
+import { readEnvInt, fetchHttpResource, parseBase64DataUrl } from './fetch-utils.js';
 
 // Re-export for tests
 export { isBlockedIPv4, assertUrlSafeForFetch } from './fetch-utils.js';
@@ -106,20 +106,18 @@ export interface AudioData {
 export async function prepareAudioData(source: string): Promise<AudioData> {
   // --- data URL ---
   if (source.startsWith('data:')) {
-    const match = source.match(/^data:([^;]+);base64,(.+)$/);
-    if (!match) throw new Error('Invalid data URL format');
+    const parsed = parseBase64DataUrl(source);
+    if (!parsed) throw new Error('Invalid data URL format');
 
-    const mime = match[1]!;
-    const b64 = match[2]!;
-    const format = mimeSubtypeToFormat(mime.split('/')[1] ?? '');
+    const format = mimeSubtypeToFormat(parsed.mediaType.split('/')[1] ?? '');
     if (!format) {
       throw new Error(
-        `Unsupported audio format from MIME: ${mime}. Supported: ${SUPPORTED_AUDIO_FORMATS.join(', ')}`,
+        `Unsupported audio format from MIME: ${parsed.mediaType}. Supported: ${SUPPORTED_AUDIO_FORMATS.join(', ')}`,
       );
     }
-    const approxBytes = Math.ceil((b64.length * 3) / 4);
+    const approxBytes = Math.ceil((parsed.base64.length * 3) / 4);
     if (approxBytes > getMaxDataUrlBytes()) throw new Error('Data URL too large');
-    return { data: b64, format };
+    return { data: parsed.base64, format };
   }
 
   // --- HTTP(S) URL ---
