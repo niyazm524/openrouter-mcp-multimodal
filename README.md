@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="OpenRouter MCP Multimodal" width="200" height="200" />
+  <img src="assets/logo.png" alt="OpenRouter MCP Multimodal" width="200" height="200" />
 </p>
 
 <h1 align="center">OpenRouter MCP Multimodal Server</h1>
