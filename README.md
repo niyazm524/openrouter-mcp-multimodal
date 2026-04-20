@@ -2,10 +2,23 @@
 
 # OpenRouter MCP Multimodal Server
 
-[![npm version](https://img.shields.io/npm/v/@stabgan/openrouter-mcp-multimodal.svg)](https://www.npmjs.com/package/@stabgan/openrouter-mcp-multimodal)
-[![Docker Pulls](https://img.shields.io/docker/pulls/stabgan/openrouter-mcp-multimodal.svg)](https://hub.docker.com/r/stabgan/openrouter-mcp-multimodal)
+[![npm version](https://img.shields.io/npm/v/@stabgan/openrouter-mcp-multimodal.svg?label=npm&color=cb3837&logo=npm)](https://www.npmjs.com/package/@stabgan/openrouter-mcp-multimodal)
+[![Docker Image Version](https://img.shields.io/docker/v/stabgan/openrouter-mcp-multimodal/latest?label=docker&color=2496ed&logo=docker&logoColor=white)](https://hub.docker.com/r/stabgan/openrouter-mcp-multimodal)
 [![Build Status](https://github.com/stabgan/openrouter-mcp-multimodal/actions/workflows/publish.yml/badge.svg)](https://github.com/stabgan/openrouter-mcp-multimodal/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/node-%E2%89%A518-43853d?logo=node.js&logoColor=white)](https://nodejs.org)
+
+### 📊 By the numbers
+
+[![npm total downloads](https://img.shields.io/npm/dt/@stabgan/openrouter-mcp-multimodal.svg?label=npm%20total%20downloads&color=cb3837&logo=npm)](https://www.npmjs.com/package/@stabgan/openrouter-mcp-multimodal)
+[![npm monthly](https://img.shields.io/npm/dm/@stabgan/openrouter-mcp-multimodal.svg?label=npm%2Fmonth&color=cb3837&logo=npm)](https://www.npmjs.com/package/@stabgan/openrouter-mcp-multimodal)
+[![Docker Pulls](https://img.shields.io/docker/pulls/stabgan/openrouter-mcp-multimodal.svg?label=docker%20pulls&color=2496ed&logo=docker&logoColor=white)](https://hub.docker.com/r/stabgan/openrouter-mcp-multimodal)
+[![GitHub stars](https://img.shields.io/github/stars/stabgan/openrouter-mcp-multimodal.svg?label=stars&color=f5d024&logo=github)](https://github.com/stabgan/openrouter-mcp-multimodal/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/stabgan/openrouter-mcp-multimodal.svg?label=forks&color=6e5494&logo=github)](https://github.com/stabgan/openrouter-mcp-multimodal/network/members)
+
+> **3,800+ installs** across npm + Docker Hub since launch, **~940 npm installs/month** and accelerating. Thanks to everyone who starred ⭐, forked 🍴, and shipped with it — every badge above is live so you're always looking at today's numbers.
+
+---
 
 An OpenRouter MCP server with native vision, image generation, audio analysis, audio generation, and v3 video analysis + generation in one package.
 
