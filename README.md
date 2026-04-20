@@ -48,9 +48,9 @@ Access 300+ LLMs through [OpenRouter](https://openrouter.ai) via the [Model Cont
 
 <table>
 <tr><td><strong>Kiro</strong></td><td><a href="https://kiro.dev/launch/mcp/add?name=openrouter&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40stabgan%2Fopenrouter-mcp-multimodal%22%5D%2C%22env%22%3A%7B%22OPENROUTER_API_KEY%22%3A%22sk-or-v1-...%22%7D%2C%22disabled%22%3Afalse%2C%22autoApprove%22%3A%5B%5D%7D"><img src="https://img.shields.io/badge/Add_to-Kiro-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white" alt="Add to Kiro" /></a></td></tr>
-<tr><td><strong>Cursor</strong></td><td><a href="cursor://anysphere.cursor-deeplink/mcp/install?name=openrouter&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBzdGFiZ2FuL29wZW5yb3V0ZXItbWNwLW11bHRpbW9kYWwiXSwiZW52Ijp7Ik9QRU5ST1VURVJfQVBJX0tFWSI6InNrLW9yLXYxLS4uLiJ9fQ=="><img src="https://img.shields.io/badge/Add_to-Cursor-000?style=for-the-badge&logo=cursor&logoColor=white" alt="Add to Cursor" /></a></td></tr>
-<tr><td><strong>VS Code</strong></td><td><a href="vscode:mcp/install?%7B%22name%22%3A%22openrouter%22%2C%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40stabgan%2Fopenrouter-mcp-multimodal%22%5D%2C%22env%22%3A%7B%22OPENROUTER_API_KEY%22%3A%22sk-or-v1-...%22%7D%7D"><img src="https://img.shields.io/badge/Add_to-VS_Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Add to VS Code" /></a></td></tr>
-<tr><td><strong>VS Code Insiders</strong></td><td><a href="vscode-insiders:mcp/install?%7B%22name%22%3A%22openrouter%22%2C%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40stabgan%2Fopenrouter-mcp-multimodal%22%5D%2C%22env%22%3A%7B%22OPENROUTER_API_KEY%22%3A%22sk-or-v1-...%22%7D%7D"><img src="https://img.shields.io/badge/Add_to-VS_Code_Insiders-24bfa5?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Add to VS Code Insiders" /></a></td></tr>
+<tr><td><strong>Cursor</strong></td><td><a href="https://cursor.com/en/install-mcp?name=openrouter&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBzdGFiZ2FuL29wZW5yb3V0ZXItbWNwLW11bHRpbW9kYWwiXSwiZW52Ijp7Ik9QRU5ST1VURVJfQVBJX0tFWSI6InNrLW9yLXYxLS4uLiJ9fQ%3D%3D"><img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Add to Cursor" /></a></td></tr>
+<tr><td><strong>VS Code</strong></td><td><a href="https://insiders.vscode.dev/redirect/mcp/install?name=openrouter&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40stabgan%2Fopenrouter-mcp-multimodal%22%5D%2C%22env%22%3A%7B%22OPENROUTER_API_KEY%22%3A%22sk-or-v1-...%22%7D%7D"><img src="https://img.shields.io/badge/Add_to-VS_Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Add to VS Code" /></a></td></tr>
+<tr><td><strong>VS Code Insiders</strong></td><td><a href="https://insiders.vscode.dev/redirect/mcp/install?name=openrouter&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40stabgan%2Fopenrouter-mcp-multimodal%22%5D%2C%22env%22%3A%7B%22OPENROUTER_API_KEY%22%3A%22sk-or-v1-...%22%7D%7D&quality=insiders"><img src="https://img.shields.io/badge/Add_to-VS_Code_Insiders-24bfa5?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Add to VS Code Insiders" /></a></td></tr>
 <tr><td><strong>Claude Desktop</strong></td><td><a href="#option-1-npx-no-install">Install Guide</a> — Add to <code>claude_desktop_config.json</code></td></tr>
 <tr><td><strong>Windsurf</strong></td><td><a href="#option-1-npx-no-install">Install Guide</a> — Add to <code>~/.codeium/windsurf/mcp_config.json</code></td></tr>
 <tr><td><strong>Cline</strong></td><td><a href="#option-1-npx-no-install">Install Guide</a> — Add via Cline MCP settings</td></tr>
@@ -60,13 +60,24 @@ Access 300+ LLMs through [OpenRouter](https://openrouter.ai) via the [Model Cont
 > After clicking, the target client opens a confirmation prompt. You'll need to paste your `OPENROUTER_API_KEY` — the deeplink ships a placeholder so no secrets end up in shared links.
 
 <!--
-Install-link audit (2026-04-20, round 3):
- - Cursor + VS Code payloads now include "type":"stdio" — without it both IDEs
-   silently fail because they don't know which transport to use.
- - Cursor base64 decodes to: {"type":"stdio","command":"npx","args":["-y","@stabgan/openrouter-mcp-multimodal"],"env":{"OPENROUTER_API_KEY":"sk-or-v1-..."}}
- - VS Code URL-encoded JSON decodes to: {"name":"openrouter","type":"stdio","command":"npx","args":["-y","@stabgan/openrouter-mcp-multimodal"],"env":{"OPENROUTER_API_KEY":"sk-or-v1-..."}}
- - Kiro uses https://kiro.dev/launch/mcp/add?name=&config= (URL-encoded JSON, no type needed per Kiro spec)
- - Regenerate with: node scripts/make-install-links.mjs
+Install-link audit (2026-04-20, round 4 — HTTPS redirectors only):
+  GitHub Markdown strips non-HTTPS schemes (cursor://, vscode:) from href attributes
+  and rewrites them to cursor.sh / nothing. The only deeplinks that survive GitHub's
+  sanitizer are HTTPS URLs. Fortunately both Cursor and VS Code publish official
+  HTTPS redirector endpoints that hand off to the IDE's native protocol handler:
+
+  - Kiro:    https://kiro.dev/launch/mcp/add?name=<name>&config=<url-encoded JSON>
+  - Cursor:  https://cursor.com/en/install-mcp?name=<name>&config=<base64>
+             (config excludes `name`; badge is cursor.com/deeplink/mcp-install-dark.svg)
+  - VS Code: https://insiders.vscode.dev/redirect/mcp/install?name=<name>&config=<urlenc JSON>
+             (config excludes `name`; append &quality=insiders for Insiders)
+
+  Earlier rounds used cursor://anysphere.cursor-deeplink/... and vscode:mcp/install?...
+  — both got stripped by GitHub and rendered as broken redirects to cursor.sh or a
+  camo.githubusercontent.com image-proxy URL. Pattern confirmed against
+  github/github-mcp-server and modelcontextprotocol/servers READMEs.
+
+  Regenerate with: node scripts/make-install-links.mjs
 -->
 
 ## Why This One?

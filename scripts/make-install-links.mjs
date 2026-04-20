@@ -1,83 +1,79 @@
 #!/usr/bin/env node
 /**
- * Generate one-click MCP install deeplinks for Kiro, Cursor, and VS Code
- * for @stabgan/openrouter-mcp-multimodal. Also decodes the deeplinks
- * currently in the README so reviewers can audit drift.
+ * Generate canonical one-click MCP install URLs for Kiro, Cursor, and
+ * VS Code. Uses HTTPS redirector endpoints only — custom protocols
+ * (cursor://, vscode:) get stripped by GitHub Markdown's link sanitizer
+ * so they don't survive when embedded in a README.
  *
  * Sources (accessed 2026-04-20):
- *   Kiro   - https://kiro.dev/docs/mcp/servers  (URL-encoded JSON in `config`)
- *   Cursor - https://docs.cursor.com/en/context/mcp + danywalls.com  (base64 JSON in `config`)
- *   VS Code- https://code.visualstudio.com/docs/copilot/chat/mcp-servers (URL-encoded JSON in query)
+ *   Kiro    — https://kiro.dev/docs/mcp/servers  (URL-encoded JSON in `config`)
+ *   Cursor  — https://cursor.com/en/install-mcp?name=&config=<base64>
+ *             (pattern used by github/github-mcp-server)
+ *   VS Code — https://insiders.vscode.dev/redirect/mcp/install?name=&config=<url-enc JSON>
+ *             (pattern used by modelcontextprotocol/servers; append
+ *             &quality=insiders for VS Code Insiders)
  */
 
 const NAME = 'openrouter';
 
-// Canonical server config for one-click installs.
-// Kiro expects the inner value (command/args/env). Cursor expects the same
-// shape. VS Code expects a {name, ...rest} shape at the top level.
-const INNER = {
+// Base server config (no name — that goes in the URL).
+const CONFIG = {
+  type: 'stdio',
   command: 'npx',
   args: ['-y', '@stabgan/openrouter-mcp-multimodal'],
   env: { OPENROUTER_API_KEY: 'sk-or-v1-...' },
+};
+
+// Kiro config expects disabled/autoApprove fields, no `type`.
+const KIRO_CONFIG = {
+  command: CONFIG.command,
+  args: CONFIG.args,
+  env: CONFIG.env,
   disabled: false,
   autoApprove: [],
 };
 
-// --- Kiro: URL-encoded JSON ---
-const kiroUrl = `https://kiro.dev/launch/mcp/add?name=${encodeURIComponent(NAME)}&config=${encodeURIComponent(
-  JSON.stringify(INNER),
-)}`;
+// --- Kiro (URL-encoded JSON) ---
+const kiroUrl = `https://kiro.dev/launch/mcp/add?name=${encodeURIComponent(
+  NAME,
+)}&config=${encodeURIComponent(JSON.stringify(KIRO_CONFIG))}`;
 
-// --- Cursor: base64-encoded JSON (same shape as a single mcpServers entry) ---
-const cursorInner = {
-  command: INNER.command,
-  args: INNER.args,
-  env: INNER.env,
-};
-const cursorB64 = Buffer.from(JSON.stringify(cursorInner), 'utf8').toString('base64');
-const cursorUrl = `cursor://anysphere.cursor-deeplink/mcp/install?name=${encodeURIComponent(NAME)}&config=${cursorB64}`;
+// --- Cursor (base64-encoded JSON, via cursor.com HTTPS redirector) ---
+const cursorB64 = Buffer.from(JSON.stringify(CONFIG), 'utf8').toString('base64');
+const cursorUrl = `https://cursor.com/en/install-mcp?name=${encodeURIComponent(
+  NAME,
+)}&config=${encodeURIComponent(cursorB64)}`;
 
-// --- VS Code: URL-encoded JSON with {name, command, args, env} at the top ---
-const vscodeInner = {
-  name: NAME,
-  command: INNER.command,
-  args: INNER.args,
-  env: INNER.env,
-};
-const vscodeUrl = `vscode:mcp/install?${encodeURIComponent(JSON.stringify(vscodeInner))}`;
-const vscodeInsidersUrl = `vscode-insiders:mcp/install?${encodeURIComponent(JSON.stringify(vscodeInner))}`;
+// --- VS Code (URL-encoded JSON, via insiders.vscode.dev HTTPS redirector) ---
+const vscEncoded = encodeURIComponent(JSON.stringify(CONFIG));
+const vscodeUrl = `https://insiders.vscode.dev/redirect/mcp/install?name=${encodeURIComponent(
+  NAME,
+)}&config=${vscEncoded}`;
+const vscodeInsidersUrl = `${vscodeUrl}&quality=insiders`;
 
-// --- Decode the links currently in the README (from the v2 snapshot) ---
-// Cursor (existing):
-const existingCursorB64 =
-  'eyJtY3BTZXJ2ZXJzIjogeyJvcGVucm91dGVyIjogeyJjb21tYW5kIjogIm5weCIsICJhcmdzIjogWyIteSIsICJAc3RhYmdhbi9vcGVucm91dGVyLW1jcC1tdWx0aW1vZGFsIl0sICJlbnYiOiB7Ik9QRU5ST1VURVJfQVBJX0tFWSI6ICJzay1vci12MS0uLi4ifX19fQ==';
-const existingCursorDecoded = JSON.parse(
-  Buffer.from(existingCursorB64, 'base64').toString('utf8'),
-);
-// VS Code (existing — identical base64 payload):
-const existingVscodeB64 = existingCursorB64;
-const existingVscodeDecoded = JSON.parse(
-  Buffer.from(existingVscodeB64, 'base64').toString('utf8'),
-);
+// Cursor publishes a badge image on cursor.com:
+const cursorBadge = 'https://cursor.com/deeplink/mcp-install-dark.svg';
 
-console.log('=== Proposed one-click install URLs ===\n');
-console.log('Kiro:   ', kiroUrl);
-console.log('Cursor: ', cursorUrl);
-console.log('VS Code:', vscodeUrl);
-console.log('VS Code Insiders:', vscodeInsidersUrl);
+console.log('=== Install URLs ===\n');
+console.log('Kiro:             ', kiroUrl);
+console.log();
+console.log('Cursor:           ', cursorUrl);
+console.log('Cursor badge:     ', cursorBadge);
+console.log();
+console.log('VS Code:          ', vscodeUrl);
+console.log('VS Code Insiders: ', vscodeInsidersUrl);
 
-console.log('\n=== Decoded payloads (for audit) ===\n');
-console.log('Kiro config (URL-encoded JSON decodes to):');
-console.log(JSON.stringify(INNER, null, 2));
-console.log('\nCursor config (base64 decodes to):');
-console.log(JSON.stringify(cursorInner, null, 2));
-console.log('\nVS Code payload (URL-encoded JSON):');
-console.log(JSON.stringify(vscodeInner, null, 2));
+console.log('\n=== Decoded payloads ===\n');
+console.log('Kiro config (URL-encoded) →');
+console.log(JSON.stringify(KIRO_CONFIG, null, 2));
+console.log('\nCursor config (base64) →');
+console.log(JSON.stringify(CONFIG, null, 2));
+console.log('\nVS Code config (URL-encoded JSON) →');
+console.log(JSON.stringify(CONFIG, null, 2));
 
-console.log('\n=== Existing README deeplink audit ===\n');
-console.log('Existing Cursor + VS Code base64 payload decodes to:');
-console.log(JSON.stringify(existingCursorDecoded, null, 2));
-console.log('\nIssue: the existing payload is wrapped in {"mcpServers":{...}}.');
-console.log('Cursor expects just the server body (command/args/env).');
-console.log("VS Code expects {name, command, args, env} at the top, NOT {mcpServers:...}.");
-console.log('Both existing links were therefore broken.');
+console.log('\n=== Why HTTPS redirectors? ===');
+console.log('GitHub Markdown strips custom protocols like cursor:// and vscode:');
+console.log('from <a href=""> attributes as a security policy. Only HTTPS URLs');
+console.log('survive. Both Cursor (cursor.com/en/install-mcp) and VS Code');
+console.log('(insiders.vscode.dev/redirect/mcp/install) publish HTTPS endpoints');
+console.log('that hand off to the native protocol handler on the user\'s machine.');
