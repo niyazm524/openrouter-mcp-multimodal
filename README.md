@@ -189,6 +189,7 @@ npx -y @smithery/cli install @stabgan/openrouter-mcp-multimodal --client claude
 | Variable | Required | Default | Description |
 | :--- | :---: | :--- | :--- |
 | `OPENROUTER_API_KEY` | Yes | — | Your OpenRouter API key |
+| `OPENROUTER_BASE_URL` | No | `https://openrouter.ai/api/v1` | Custom OpenRouter Endpoint (for proxies) |
 | `OPENROUTER_DEFAULT_MODEL` | No | `nvidia/nemotron-nano-12b-v2-vl:free` | Default model for chat + analyze tools |
 | `DEFAULT_MODEL` | No | — | Alias for above |
 | `OPENROUTER_MODEL_CACHE_TTL_MS` | No | `3600000` | Model cache TTL (ms) |
