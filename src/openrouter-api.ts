@@ -1,6 +1,6 @@
 import type { OpenRouterModelRecord } from './model-cache.js';
 
-const BASE_URL = process.env.BASE_OPENROUTER_URL || 'https://openrouter.ai/api/v1';
+const BASE_URL = process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
 const DEFAULT_TIMEOUT_MS = 30_000;
 const VIDEO_TIMEOUT_MS = 60_000;
 const MAX_BACKOFF_MS = 10_000;
